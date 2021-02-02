@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>HashTags</title>
+        <link type="text/css" rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css" />
+        <link type="text/css" rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"/>
+        <link href="https://use.fontawesome.com/releases/v5.0.6/css/all.css" rel="stylesheet"/>
+        <script src="https://kit.fontawesome.com/77b2fa8649.js" crossorigin="anonymous"></script>
+        <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css"/>
+        <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" href="css/hashCatStyle.css">
+    </head>
+    <body onLoad="window.scroll(0, 50)">
+
+        <div class="page-wrapper chiller-theme toggled">
+
+            <a id="show-sidebar" class="btn btn-sm btn-dark">
+
+                <i class="fas fa-bars fa-2x" style="color: whitesmoke;"></i>
+            </a>
+
+            <nav id="sidebar" class="sidebar-wrapper">
+                <div class="sidebar-content">
+                    <div class="sidebar-brand">
+                        <a th:href="@{home}" style="max-width: auto;">Blog</a>
+                        <div id="close-sidebar" >
+                            <i class="fas fa-times fa-md"></i>
+                        </div>
+                    </div>
+                    <div sec:authorize="isAuthenticated()">
+
+                        <div class="sidebar-header">
+                            <div class="user-pic">
+                                <img th:src="${'profileImages/profile' + #authentication.name + '.jpg'}" alt="Image not found" onerror="this.onerror=null;this.src='profileImages/user.jpg';" />
+                            </div>
+                            <div class="user-info">
+                                <span class="user-name">
+                                    <strong th:text="${#authentication.name}"></strong>
+                                </span>
+                                <div sec:authorize="hasRole('ROLE_ADMIN')">
+                                    <span class="user-role">Administrator</span>
+                                </div>
+                                <div sec:authorize="!hasRole('ROLE_ADMIN')">
+                                    <span class="user-role">Contributor</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <!-- sidebar-header  -->
+                    <div class="sidebar-menu">
+                        <ul>
+                            <li class="header-menu">
+                            </li>
+                            <li>
+                                <a th:href="@{home}">
+                                    <i class="fas fa-home"></i>
+                                    <span>Home</span>
+                                </a>
+                            </li>
+                            <li class="sidebar-dropdown">
+                                <a>
+                                    <i class="fas fa-list-alt"></i>
+                                    <span>Blog Posts</span>
+                                </a>
+                                <div class="sidebar-submenu">
+                                    <ul>
+                                        <li>
+                                            <a th:href="@{content}"><i class="far fa-sticky-note"></i>View All Blog Posts</a>
+                                        </li>
+                                        <div sec:authorize="isAuthenticated()">
+                                            <li>
+                                                <a th:href="@{userContent}"><i class="fab fa-readme"></i>View My Blog Posts</a>
+                                            </li>
+                                            <li>
+                                                <a th:href="@{create}"><i class="fas fa-plus"></i>Create New Post</a>
+                                            </li>
+                                        </div>
+                                    </ul>
+                                </div>
+                            </li>
+                            <div sec:authorize="hasRole('ROLE_ADMIN')">
+                                <li class="header-menu">
+                                    <span>Manage (Admin)</span>
+                                </li>
+                                <li>
+                                    <a th:href="@{admin}">
+                                        <i class="fas fa-users-cog"></i>
+                                        <span>Users</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a th:href="@{hashTags}">
+                                        <i class="fas fa-hashtag"></i>
+                                        <span>HashTags</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a th:href="@{category}">
+                                        <i class="fas fa-archive"></i>
+                                        <span>Categories</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a th:href="@{approvePosts}">
+                                        <i class="fas fa-tasks"></i>
+                                        <span>Blog Post Approval</span>
+                                        <span class="badge badge-pill badge-warning notification" th:text='${amountToApprove}' th:if='${amountToApprove != 0}'></span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a th:href="@{managePosts}">
+                                        <i class="fas fa-tools"></i>
+                                        <span>Manage All Posts</span>
+                                    </a>
+                                </li>
+                            </div>
+                        </ul>
+                    </div>
+                    <!-- sidebar-menu  -->
+                </div>
+                <!-- sidebar-content  -->
+                <div sec:authorize="isAuthenticated()">
+                    <form class="form-inline" action="/logout" method="POST" >
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <div class="sidebar-footer" style="margin-bottom: 20px;">
+                            <button class="btn btn-link" id="submit" type="submit">
+                                <i class="fas fa-sign-out-alt"></i>
+                                &nbsp;&nbsp;Log Out&nbsp;</button>
+                        </div>
+                    </form>
+                </div>
+                <div sec:authorize="!isAuthenticated()">
+                    <div class="sidebar-footer" style="margin-bottom: 20px;">
+                        <a th:href="@{login}">
+                            <i class="fas fa-sign-in-alt"></i>
+                            &nbsp;&nbsp;Log In&nbsp;
+                        </a>
+                    </div>
+                </div>
+            </nav>
+            <!-- sidebar-wrapper  -->
+            <main class="page-content">
+                <h1 id="header" class="jumbotron">HashTags</h1>
+
+                <div class='container'>
+
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <table id="example" class="table table-bordered table-striped" >
+                                    <thead>
+                                        <tr>
+                                            <th>HashTag Name</th>
+                                            <th>Edit</th>
+                                            <th>Delete</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="hashTags : ${hashTagList}">
+                                            <td> <span th:text="${hashTags.hashTagName}" </span> </td>
+                                            <td><a data-toggle="modal" data-target="#modal-edit" th:attr="data-target='#modal-edit'+${hashTags.hashTagId}" ><i class="fa fa-edit" aria-hidden="true"></i></a></td>
+                                    <div class="modal modal-edit fade" th:id="modal-edit+${hashTags.hashTagId}" >
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5>Edit HashTag </h5>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">×</span></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <fieldset>
+                                                        <form action="editHashTag" method="POST">
+                                                            <p>(All HashTags Must Be Unique)</p>
+                                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                                            <input type="hidden" name="hashTagId" th:value="${hashTags.hashTagId}">
+                                                            <label>HashTag Name</label>
+                                                            <input type="text" name="hashTagName" th:value="${hashTags.hashTagName}" placeholder= "Enter HashTag Name" required="" maxlength="50" pattern="[A-Za-z0-9]+" title="Letters and numbers only" class="form-control input-md">
+                                                            <input type="submit" value="Submit" class="btn btn-primary pull-right">
+                                                        </form>
+                                                    </fieldset>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <td><a data-toggle="modal" data-target="#modal-warning" th:attr="data-target='#modal-warning'+${hashTags.hashTagId}"><i class="fa fa-trash-o" aria-hidden="true"></i></a></td>
+                                    <div class="modal modal-warning fade" th:id="modal-warning+${hashTags.hashTagId}" >
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header alert alert-danger">
+                                                    <h5>Delete HashTag</h5>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">×</span></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <h3>Are you sure want to delete this HashTag?</h3>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Close</button>
+                                                    <form action="deleteHashTag" method="POST">
+                                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                                        <input type="hidden" name="hashTagId" th:value="${hashTags.hashTagId}"/>
+                                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                                    </form>   
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            ​
+                            <div class="col-lg-4">                    ​
+                                <h2 style="margin-top: 15px;">Add HashTag</h2>
+                                <p>(&nbsp;* indicates field that must be filled&nbsp;)</p>
+                                <fieldset>
+                                    <form action="addNewHashTag" method="POST">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                        <label>HashTag Name*</label>
+                                        <input type="text" name="hashTagName" placeholder= "Enter HashTag Name" required="" maxlength="50" pattern="[A-Za-z0-9]+" title="Letters and numbers only" class="form-control input-md">
+                                        <input type="submit" value="Submit" class="btn btn-primary pull-right">
+                                    </form>
+                                </fieldset>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <!-- page-content" -->
+        </div>
+
+
+
+
+
+
+
+        <!-- Optional JavaScript -->
+        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+        <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+        <script type="text/javascript" src="https://cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>
+        <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+        <script>
+        $(document).ready(function () {
+            $('#example').DataTable({
+                "bSort": false
+            });
+
+        });
+        </script>
+        <script>
+            jQuery(function ($) {
+
+                $(".sidebar-dropdown > a").click(function () {
+                    $(".sidebar-submenu").slideUp(200);
+                    if (
+                            $(this)
+                            .parent()
+                            .hasClass("active")
+                            ) {
+                        $(".sidebar-dropdown").removeClass("active");
+                        $(this)
+                                .parent()
+                                .removeClass("active");
+                    } else {
+                        $(".sidebar-dropdown").removeClass("active");
+                        $(this)
+                                .next(".sidebar-submenu")
+                                .slideDown(200);
+                        $(this)
+                                .parent()
+                                .addClass("active");
+                    }
+                });
+
+                $("#close-sidebar").click(function () {
+                    $(".page-wrapper").removeClass("toggled");
+                });
+                $("#show-sidebar").click(function () {
+                    $(".page-wrapper").addClass("toggled");
+                });
+
+
+
+
+            });
+        </script>
+    </body>
+</html>
